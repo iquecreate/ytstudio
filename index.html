@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#202020">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="pfp.png">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 20'%3E%3Crect width='28' height='20' rx='4' fill='%23FF0000'/%3E%3Cpolygon points='11,4 11,16 21,10' fill='white'/%3E%3C/svg%3E">
+    <title>YouTube Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+    <style>
+        /* ============================================================
+           CSS RESET + VARIABLES
+           ============================================================ */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-raised: #252525;
+            --bg-hover: #333;
+            --bg-active: #3a3a3a;
+            --sidebar-bg: #0f0f0f;
+            --topbar-bg: #0f0f0f;
+            --border-color: #2a2a2a;
+            --border-light: #333;
+            --text-primary: #f1f1f1;
+            --text-secondary: #aaa;
+            --text-disabled: #717171;
+            --yt-blue: #3ea6ff;
+            --yt-red: #ff0000;
+            --yt-green: #2ba640;
+            --yt-green-light: #4caf50;
+            --font: 'Roboto', 'Arial', sans-serif;
+            --sidebar-w: 240px;
+            --topbar-h: 56px;
+        }
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font);
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+        }
+        a { color: var(--yt-blue); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+
+        /* ============================================================
+           TOP BAR
+           ============================================================ */
+        .topbar {
+            position: fixed; top: 0; left: 0; right: 0;
+            height: var(--topbar-h);
+            background: var(--topbar-bg);
+            display: flex; align-items: center;
+            padding: 0 16px;
+            z-index: 200;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .topbar-left { display: flex; align-items: center; gap: 8px; }
+        .topbar-hamburger {
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; cursor: pointer;
+            color: var(--text-primary);
+            transition: background 0.15s;
+        }
+        .topbar-hamburger:hover { background: var(--bg-hover); }
+        .topbar-logo { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+        .topbar-logo svg { flex-shrink: 0; }
+        .topbar-logo-text {
+            font-size: 18px; font-weight: 500;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+            margin-left: 2px;
+        }
+        .topbar-right {
+            margin-left: auto;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .topbar-icon {
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; cursor: pointer;
+            color: var(--text-primary);
+            transition: background 0.15s;
+            position: relative;
+        }
+        .topbar-icon:hover { background: var(--bg-hover); }
+        .topbar-pfp {
+            width: 32px; height: 32px;
+            border-radius: 50%; cursor: pointer;
+            object-fit: cover;
+            background: #3a3a3a;
+        }
+        .topbar-pfp-wrap {
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+
+        /* ============================================================
+           SIDEBAR
+           ============================================================ */
+        .sidebar {
+            position: fixed; top: var(--topbar-h); left: 0; bottom: 0;
+            width: var(--sidebar-w);
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto; overflow-x: hidden;
+            z-index: 150;
+            padding: 12px 0;
+            transition: transform 0.25s ease;
+        }
+        .sidebar-channel {
+            display: flex; align-items: center; gap: 12px;
+            padding: 8px 20px 16px;
+        }
+        .sidebar-channel-pfp {
+            width: 40px; height: 40px;
+            border-radius: 50%; object-fit: cover;
+            background: #3a3a3a; flex-shrink: 0;
+        }
+        .sidebar-channel-info { overflow: hidden; }
+        .sidebar-channel-name {
+            font-size: 14px; font-weight: 500;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .sidebar-channel-link {
+            font-size: 12px; color: var(--text-secondary);
+        }
+        .sidebar-divider {
+            height: 1px; background: var(--border-color);
+            margin: 8px 16px;
+        }
+        .sidebar-item {
+            display: flex; align-items: center; gap: 16px;
+            padding: 8px 24px; cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 14px; font-weight: 400;
+            transition: background 0.1s;
+            position: relative;
+            white-space: nowrap;
+        }
+        .sidebar-item:hover { background: var(--bg-hover); }
+        .sidebar-item.active {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+        .sidebar-item.active::before {
+            content: '';
+            position: absolute; left: 0; top: 4px; bottom: 4px;
+            width: 3px; background: var(--text-primary);
+            border-radius: 0 3px 3px 0;
+        }
+        .sidebar-item .material-symbols-outlined {
+            font-size: 22px; color: inherit;
+        }
+        .sidebar-section-label {
+            padding: 16px 24px 8px;
+            font-size: 11px; font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        /* ============================================================
+           MAIN CONTENT
+           ============================================================ */
+        .main {
+            position: fixed;
+            top: var(--topbar-h); left: var(--sidebar-w); right: 0; bottom: 0;
+            overflow-y: auto;
+            padding: 24px;
+            background: var(--bg-primary);
+        }
+        .page { display: none; }
+        .page.active { display: block; }
+        .page-title {
+            font-size: 24px; font-weight: 400;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+        }
+
+        /* ============================================================
+           CARDS
+           ============================================================ */
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px 24px;
+            border: 1px solid var(--border-color);
+        }
+        .card-title {
+            font-size: 13px; font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 16px;
+        }
+        .card-link {
+            display: inline-block; margin-top: 16px;
+            font-size: 13px; font-weight: 500;
+            color: var(--yt-blue);
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        .card-link:hover { text-decoration: none; opacity: 0.85; }
+
+        /* ============================================================
+           DASHBOARD LAYOUT
+           ============================================================ */
+        .dash-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        .dash-left { display: flex; flex-direction: column; gap: 16px; }
+        .dash-right { display: flex; flex-direction: column; gap: 16px; }
+
+        /* Channel analytics card */
+        .analytics-summary-header {
+            font-size: 13px; color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .analytics-big-number {
+            font-size: 48px; font-weight: 400;
+            color: var(--text-primary);
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+        .analytics-period {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .analytics-period-label {
+            font-size: 14px; font-weight: 500;
+            color: var(--text-primary);
+        }
+        .analytics-period-range {
+            font-size: 13px; color: var(--text-secondary);
+            display: flex; align-items: center; gap: 4px;
+            cursor: pointer;
+        }
+        .analytics-row {
+            display: flex; align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .analytics-row:last-child { border-bottom: none; }
+        .analytics-row-label {
+            flex: 1; font-size: 13px;
+            color: var(--text-primary);
+        }
+        .analytics-row-value {
+            font-size: 14px; font-weight: 500;
+            color: var(--text-primary);
+            min-width: 70px; text-align: right;
+        }
+        .analytics-row-change {
+            font-size: 12px; min-width: 60px;
+            text-align: right; margin-left: 8px;
+        }
+        .analytics-row-change.up { color: var(--yt-green); }
+        .analytics-row-change.down { color: var(--yt-red); }
+        .analytics-row-spark {
+            width: 80px; height: 28px;
+            margin-left: 12px; flex-shrink: 0;
+        }
+
+        /* Realtime card */
+        .realtime-graph { width: 100%; height: 80px; margin-bottom: 12px; }
+        .realtime-label {
+            font-size: 13px; color: var(--text-secondary);
+            margin-bottom: 2px;
+        }
+        .realtime-value {
+            font-size: 28px; font-weight: 400;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        .realtime-sub-label {
+            font-size: 12px; color: var(--text-secondary);
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+            margin-bottom: 2px;
+        }
+        .realtime-sub-value {
+            font-size: 20px; font-weight: 400;
+            color: var(--text-primary);
+        }
+        .realtime-update {
+            font-size: 11px; color: var(--text-disabled);
+            margin-top: 12px;
+        }
+
+        /* Latest video card */
+        .latest-video-row {
+            display: flex; gap: 16px;
+            margin-bottom: 16px;
+        }
+        .latest-video-thumb {
+            width: 120px; height: 68px;
+            border-radius: 4px; flex-shrink: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        .latest-video-info { flex: 1; overflow: hidden; }
+        .latest-video-title {
+            font-size: 14px; font-weight: 500;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+        .latest-video-meta {
+            font-size: 12px; color: var(--text-secondary);
+        }
+        .latest-video-period {
+            font-size: 12px; color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 8px; margin-top: 4px;
+        }
+        .latest-video-graph { width: 100%; height: 100px; }
+        .latest-video-stat {
+            display: flex; justify-content: space-between;
+            margin-top: 8px;
+        }
+        .latest-video-stat-label { font-size: 13px; color: var(--text-secondary); }
+        .latest-video-stat-value { font-size: 14px; font-weight: 500; }
+
+        /* ============================================================
+           ANALYTICS PAGE
+           ============================================================ */
+        .analytics-tabs {
+            display: flex; gap: 0;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+        .analytics-tab {
+            padding: 12px 20px; cursor: pointer;
+            font-size: 14px; font-weight: 500;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: color 0.15s;
+        }
+        .analytics-tab:hover { color: var(--text-primary); }
+        .analytics-tab.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--text-primary);
+        }
+        .analytics-date-range {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 20px; font-size: 13px; color: var(--text-secondary);
+        }
+        .analytics-main-graph {
+            width: 100%; height: 280px;
+            margin-bottom: 24px;
+        }
+        .analytics-metrics {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        .analytics-metric-card {
+            padding: 16px; cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: background 0.15s;
+        }
+        .analytics-metric-card:hover { background: var(--bg-hover); border-radius: 8px; }
+        .analytics-metric-card.active-metric { border-bottom-color: var(--yt-blue); }
+        .analytics-metric-label {
+            font-size: 12px; color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .analytics-metric-value {
+            font-size: 24px; font-weight: 400;
+            margin-bottom: 2px;
+        }
+        .analytics-metric-change {
+            font-size: 12px;
+        }
+        .analytics-metric-change.up { color: var(--yt-green); }
+        .analytics-metric-change.down { color: var(--yt-red); }
+
+        /* ============================================================
+           CONTENT PAGE
+           ============================================================ */
+        .content-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .content-filter-bar {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 16px; padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .content-filter {
+            font-size: 13px; color: var(--text-secondary);
+            padding: 6px 12px; border-radius: 8px;
+            cursor: pointer; transition: background 0.15s;
+        }
+        .content-filter:hover { background: var(--bg-hover); }
+        .content-filter.active { background: var(--bg-active); color: var(--text-primary); }
+        .content-table { width: 100%; border-collapse: collapse; }
+        .content-table th {
+            text-align: left; font-size: 12px; font-weight: 500;
+            color: var(--text-secondary); padding: 8px 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .content-table td {
+            padding: 12px; border-bottom: 1px solid var(--border-color);
+            font-size: 13px; vertical-align: middle;
+        }
+        .content-table tr:hover { background: var(--bg-hover); }
+        .content-video-cell {
+            display: flex; align-items: center; gap: 12px;
+        }
+        .content-thumb {
+            width: 120px; height: 68px;
+            border-radius: 4px; flex-shrink: 0;
+        }
+        .content-video-title {
+            font-size: 13px; font-weight: 500;
+            max-width: 280px; overflow: hidden;
+            text-overflow: ellipsis; white-space: nowrap;
+        }
+        .content-video-desc {
+            font-size: 11px; color: var(--text-disabled);
+            max-width: 280px; overflow: hidden;
+            text-overflow: ellipsis; white-space: nowrap;
+            margin-top: 2px;
+        }
+        .content-visibility {
+            display: flex; align-items: center; gap: 4px;
+            font-size: 13px;
+        }
+        .content-visibility .material-symbols-outlined { font-size: 16px; color: var(--yt-green-light); }
+        .upload-btn {
+            background: var(--yt-red); color: #fff;
+            border: none; border-radius: 2px;
+            padding: 8px 16px; font-size: 14px; font-weight: 500;
+            cursor: pointer; font-family: var(--font);
+            display: flex; align-items: center; gap: 6px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        /* ============================================================
+           EARN PAGE
+           ============================================================ */
+        .earn-header-row {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 24px;
+        }
+        .earn-ypp-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #2ba64020; color: var(--yt-green);
+            padding: 6px 14px; border-radius: 20px;
+            font-size: 13px; font-weight: 500;
+        }
+        .earn-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 16px; margin-bottom: 24px;
+        }
+        .earn-big-value {
+            font-size: 36px; font-weight: 400;
+            margin-bottom: 4px;
+        }
+        .earn-label {
+            font-size: 13px; color: var(--text-secondary);
+            margin-bottom: 2px;
+        }
+        .earn-change { font-size: 12px; }
+        .earn-change.up { color: var(--yt-green); }
+        .earn-graph { width: 100%; height: 200px; margin-top: 16px; }
+        .earn-sources { margin-top: 20px; }
+        .earn-source-row {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .earn-source-bar-wrap {
+            flex: 1; height: 8px;
+            background: var(--bg-hover); border-radius: 4px;
+            overflow: hidden;
+        }
+        .earn-source-bar {
+            height: 100%; border-radius: 4px;
+            background: var(--yt-blue);
+        }
+        .earn-source-name { font-size: 13px; min-width: 160px; }
+        .earn-source-pct {
+            font-size: 13px; min-width: 40px;
+            text-align: right; color: var(--text-secondary);
+        }
+        .earn-source-val {
+            font-size: 13px; min-width: 80px;
+            text-align: right; font-weight: 500;
+        }
+
+        /* ============================================================
+           HIDDEN EDITOR OVERLAY
+           ============================================================ */
+        .editor-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 9999;
+            display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .editor-overlay.open { display: flex; }
+        .editor-panel {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            width: 90%; max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 24px;
+        }
+        .editor-title {
+            font-size: 20px; font-weight: 500;
+            margin-bottom: 20px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .editor-close {
+            width: 36px; height: 36px;
+            background: none; border: none;
+            color: var(--text-primary); cursor: pointer;
+            font-size: 20px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .editor-close:hover { background: var(--bg-hover); }
+        .editor-section {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .editor-section-title {
+            font-size: 13px; font-weight: 500;
+            color: var(--yt-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+        .editor-row {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 8px;
+        }
+        .editor-label {
+            font-size: 13px; color: var(--text-secondary);
+            min-width: 150px; flex-shrink: 0;
+        }
+        .editor-input {
+            flex: 1; background: #0f0f0f;
+            border: 1px solid #333;
+            color: var(--text-primary);
+            padding: 8px 12px; border-radius: 6px;
+            font-size: 14px; font-family: var(--font);
+            outline: none;
+        }
+        .editor-input:focus { border-color: var(--yt-blue); }
+        .editor-actions {
+            display: flex; gap: 12px; margin-top: 20px;
+        }
+        .editor-btn {
+            padding: 10px 24px; border-radius: 20px;
+            font-size: 14px; font-weight: 500;
+            cursor: pointer; border: none;
+            font-family: var(--font);
+        }
+        .editor-btn-save { background: var(--yt-blue); color: #000; }
+        .editor-btn-save:hover { opacity: 0.9; }
+        .editor-btn-secondary { background: #333; color: var(--text-primary); }
+        .editor-btn-secondary:hover { background: #444; }
+
+        /* ============================================================
+           TOAST NOTIFICATION
+           ============================================================ */
+        .toast {
+            position: fixed; bottom: 24px; left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #323232; color: #fff;
+            padding: 12px 24px; border-radius: 4px;
+            font-size: 14px; z-index: 99999;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .toast.visible { transform: translateX(-50%) translateY(0); }
+
+        /* ============================================================
+           RESPONSIVE (mobile / tablet)
+           ============================================================ */
+        @media (max-width: 900px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main { left: 0; }
+            .dash-grid { grid-template-columns: 1fr; }
+            .analytics-metrics { grid-template-columns: repeat(2, 1fr); }
+            .earn-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 600px) {
+            .main { padding: 16px; }
+            .analytics-big-number { font-size: 36px; }
+            .analytics-metrics { grid-template-columns: 1fr 1fr; }
+            .content-thumb { width: 80px; height: 45px; }
+            .editor-panel { width: 95%; padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ================================================================
+     TOP BAR
+     ================================================================ -->
+<div class="topbar">
+    <div class="topbar-left">
+        <div class="topbar-hamburger" id="hamburger" title="Menu">
+            <span class="material-symbols-outlined">menu</span>
+        </div>
+        <div class="topbar-logo">
+            <svg viewBox="0 0 90 20" width="90" height="20">
+                <rect x="0" y="0" width="28" height="20" rx="5" fill="#FF0000"/>
+                <polygon points="11,4 11,16 21,10" fill="#FFF"/>
+                <text x="32" y="15" fill="#F1F1F1" font-family="Roboto, Arial" font-size="15" font-weight="500">Studio</text>
+            </svg>
+        </div>
+    </div>
+    <div class="topbar-right">
+        <div class="topbar-icon" title="Create">
+            <span class="material-symbols-outlined">video_call</span>
+        </div>
+        <div class="topbar-icon" title="Help">
+            <span class="material-symbols-outlined">help_outline</span>
+        </div>
+        <div class="topbar-icon" title="Notifications">
+            <span class="material-symbols-outlined">notifications</span>
+        </div>
+        <div class="topbar-pfp-wrap" id="pfp-trigger" title="Account">
+            <img src="pfp.png" class="topbar-pfp" alt="Profile" onerror="this.style.background='#5865F2';this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27/%3E'">
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     SIDEBAR
+     ================================================================ -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-channel">
+        <img src="pfp.png" class="sidebar-channel-pfp" alt="" onerror="this.style.background='#5865F2'">
+        <div class="sidebar-channel-info">
+            <div class="sidebar-channel-name" id="sidebar-channel-name">Zinvolo</div>
+            <div class="sidebar-channel-link">Your channel</div>
+        </div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-item active" data-page="dashboard">
+        <span class="material-symbols-outlined">dashboard</span>Dashboard
+    </div>
+    <div class="sidebar-item" data-page="content">
+        <span class="material-symbols-outlined">video_library</span>Content
+    </div>
+    <div class="sidebar-item" data-page="analytics">
+        <span class="material-symbols-outlined">analytics</span>Analytics
+    </div>
+    <div class="sidebar-item" data-page="comments">
+        <span class="material-symbols-outlined">chat_bubble_outline</span>Comments
+    </div>
+    <div class="sidebar-item">
+        <span class="material-symbols-outlined">subtitles</span>Subtitles
+    </div>
+    <div class="sidebar-item">
+        <span class="material-symbols-outlined">copyright</span>Copyright
+    </div>
+    <div class="sidebar-item" data-page="earn">
+        <span class="material-symbols-outlined">attach_money</span>Earn
+    </div>
+    <div class="sidebar-item">
+        <span class="material-symbols-outlined">brush</span>Customization
+    </div>
+    <div class="sidebar-item">
+        <span class="material-symbols-outlined">library_music</span>Audio library
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-item">
+        <span class="material-symbols-outlined">settings</span>Settings
+    </div>
+    <div class="sidebar-item">
+        <span class="material-symbols-outlined">feedback</span>Send feedback
+    </div>
+</div>
+
+<!-- ================================================================
+     MAIN CONTENT
+     ================================================================ -->
+<div class="main" id="main">
+
+    <!-- ============ DASHBOARD PAGE ============ -->
+    <div class="page active" id="page-dashboard">
+        <div class="page-title">Channel dashboard</div>
+        <div class="dash-grid">
+            <div class="dash-left">
+                <!-- Channel Analytics Card -->
+                <div class="card" id="card-analytics">
+                    <div class="card-title">Channel analytics</div>
+                    <div class="analytics-summary-header">Current subscribers</div>
+                    <div class="analytics-big-number" id="dash-subs">847K</div>
+                    <div class="analytics-period">
+                        <div class="analytics-period-label">Summary</div>
+                        <div class="analytics-period-range">
+                            Last 28 days
+                            <span class="material-symbols-outlined" style="font-size:16px">arrow_drop_down</span>
+                        </div>
+                    </div>
+                    <div class="analytics-row">
+                        <div class="analytics-row-label">Views</div>
+                        <div class="analytics-row-value" id="dash-views28">2.1M</div>
+                        <div class="analytics-row-change up" id="dash-views-change">&#9650; 12.3%</div>
+                        <canvas class="analytics-row-spark" id="spark-views"></canvas>
+                    </div>
+                    <div class="analytics-row">
+                        <div class="analytics-row-label">Watch time (hours)</div>
+                        <div class="analytics-row-value" id="dash-watchtime28">156.7K</div>
+                        <div class="analytics-row-change up" id="dash-wt-change">&#9650; 8.1%</div>
+                        <canvas class="analytics-row-spark" id="spark-watchtime"></canvas>
+                    </div>
+                    <div class="analytics-row">
+                        <div class="analytics-row-label">Subscribers</div>
+                        <div class="analytics-row-value" id="dash-subs28">+12.4K</div>
+                        <div class="analytics-row-change up" id="dash-subs-change">&#9650; 5.2%</div>
+                        <canvas class="analytics-row-spark" id="spark-subs"></canvas>
+                    </div>
+                    <div class="analytics-row">
+                        <div class="analytics-row-label">Estimated revenue</div>
+                        <div class="analytics-row-value" id="dash-revenue28">$8,429</div>
+                        <div class="analytics-row-change up" id="dash-rev-change">&#9650; 15.7%</div>
+                        <canvas class="analytics-row-spark" id="spark-revenue"></canvas>
+                    </div>
+                    <div class="card-link" onclick="navigate('analytics')">GO TO CHANNEL ANALYTICS &rarr;</div>
+                </div>
+
+                <!-- Latest Video Card -->
+                <div class="card">
+                    <div class="card-title">Latest video performance</div>
+                    <div class="latest-video-row">
+                        <div class="latest-video-thumb" id="latest-thumb"></div>
+                        <div class="latest-video-info">
+                            <div class="latest-video-title" id="latest-title">Building the ULTIMATE Gaming Setup for 2026</div>
+                            <div class="latest-video-meta" id="latest-meta">Published 3 days ago</div>
+                        </div>
+                    </div>
+                    <div class="latest-video-period">First 3 days</div>
+                    <canvas class="latest-video-graph" id="graph-latest"></canvas>
+                    <div class="latest-video-stat">
+                        <div class="latest-video-stat-label">Views</div>
+                        <div class="latest-video-stat-value" id="latest-views">342K</div>
+                    </div>
+                    <div class="latest-video-stat">
+                        <div class="latest-video-stat-label">Likes</div>
+                        <div class="latest-video-stat-value" id="latest-likes">18.9K</div>
+                    </div>
+                    <div class="latest-video-stat">
+                        <div class="latest-video-stat-label">Comments</div>
+                        <div class="latest-video-stat-value" id="latest-comments">1,247</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-right">
+                <!-- Realtime Card -->
+                <div class="card">
+                    <div class="card-title">Realtime</div>
+                    <canvas class="realtime-graph" id="graph-realtime"></canvas>
+                    <div class="realtime-label">Views &middot; Last 48 hours</div>
+                    <div class="realtime-value" id="rt-views48">28,400</div>
+                    <div class="realtime-sub-label">Last 60 minutes</div>
+                    <div class="realtime-sub-value" id="rt-views60">47</div>
+                    <div class="realtime-update">Updated just now</div>
+                </div>
+
+                <!-- Quick Subscribers Card -->
+                <div class="card">
+                    <div class="card-title">Subscriber milestone</div>
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                        <span class="material-symbols-outlined" style="font-size:32px;color:var(--yt-red)">emoji_events</span>
+                        <div>
+                            <div style="font-size:13px;color:var(--text-secondary)">Next goal</div>
+                            <div style="font-size:18px;font-weight:500" id="milestone-goal">1M subscribers</div>
+                        </div>
+                    </div>
+                    <div class="earn-source-bar-wrap" style="height:6px;margin-bottom:6px">
+                        <div class="earn-source-bar" id="milestone-bar" style="width:84.7%;background:var(--yt-red)"></div>
+                    </div>
+                    <div style="font-size:12px;color:var(--text-secondary)" id="milestone-text">847K / 1M</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ ANALYTICS PAGE ============ -->
+    <div class="page" id="page-analytics">
+        <div class="page-title">Channel analytics</div>
+        <div class="analytics-tabs">
+            <div class="analytics-tab active" data-tab="overview">Overview</div>
+            <div class="analytics-tab" data-tab="content">Content</div>
+            <div class="analytics-tab" data-tab="audience">Audience</div>
+            <div class="analytics-tab" data-tab="revenue">Revenue</div>
+        </div>
+        <div class="analytics-date-range">
+            <span class="material-symbols-outlined" style="font-size:16px">calendar_today</span>
+            Last 28 days &middot; Jan 19 &ndash; Feb 15
+        </div>
+        <canvas class="analytics-main-graph" id="graph-analytics-main"></canvas>
+        <div class="analytics-metrics" id="analytics-metrics">
+            <div class="analytics-metric-card active-metric" data-metric="views">
+                <div class="analytics-metric-label">Views</div>
+                <div class="analytics-metric-value" id="am-views">2.1M</div>
+                <div class="analytics-metric-change up" id="am-views-change">&#9650; 12.3%</div>
+            </div>
+            <div class="analytics-metric-card" data-metric="watchtime">
+                <div class="analytics-metric-label">Watch time (hours)</div>
+                <div class="analytics-metric-value" id="am-watchtime">156.7K</div>
+                <div class="analytics-metric-change up" id="am-wt-change">&#9650; 8.1%</div>
+            </div>
+            <div class="analytics-metric-card" data-metric="subs">
+                <div class="analytics-metric-label">Subscribers</div>
+                <div class="analytics-metric-value" id="am-subs">+12.4K</div>
+                <div class="analytics-metric-change up" id="am-subs-change">&#9650; 5.2%</div>
+            </div>
+            <div class="analytics-metric-card" data-metric="revenue">
+                <div class="analytics-metric-label">Estimated revenue</div>
+                <div class="analytics-metric-value" id="am-revenue">$8,429</div>
+                <div class="analytics-metric-change up" id="am-rev-change">&#9650; 15.7%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ CONTENT PAGE ============ -->
+    <div class="page" id="page-content">
+        <div class="content-header">
+            <div class="page-title" style="margin-bottom:0">Channel content</div>
+            <button class="upload-btn">
+                <span class="material-symbols-outlined" style="font-size:18px">upload</span> Upload videos
+            </button>
+        </div>
+        <div class="content-filter-bar">
+            <div class="content-filter active">Videos</div>
+            <div class="content-filter">Shorts</div>
+            <div class="content-filter">Live</div>
+            <div class="content-filter">Posts</div>
+            <div class="content-filter">Playlists</div>
+            <div class="content-filter">Podcasts</div>
+        </div>
+        <table class="content-table">
+            <thead>
+                <tr>
+                    <th>Video</th>
+                    <th>Visibility</th>
+                    <th>Date</th>
+                    <th>Views</th>
+                    <th>Comments</th>
+                    <th>Likes (vs dislikes)</th>
+                </tr>
+            </thead>
+            <tbody id="content-tbody"></tbody>
+        </table>
+    </div>
+
+    <!-- ============ EARN PAGE ============ -->
+    <div class="page" id="page-earn">
+        <div class="page-title">Earn</div>
+        <div class="earn-header-row">
+            <div class="earn-ypp-badge">
+                <span class="material-symbols-outlined" style="font-size:18px">verified</span>
+                YouTube Partner Program &middot; Active
+            </div>
+        </div>
+        <div class="earn-grid">
+            <div class="card">
+                <div class="earn-label">Estimated revenue &middot; Last 28 days</div>
+                <div class="earn-big-value" id="earn-revenue">$8,429.53</div>
+                <div class="earn-change up" id="earn-rev-change">&#9650; 15.7% vs previous 28 days</div>
+            </div>
+            <div class="card">
+                <div class="earn-grid" style="margin-bottom:0">
+                    <div>
+                        <div class="earn-label">RPM</div>
+                        <div style="font-size:24px;font-weight:400" id="earn-rpm">$4.02</div>
+                    </div>
+                    <div>
+                        <div class="earn-label">CPM</div>
+                        <div style="font-size:24px;font-weight:400" id="earn-cpm">$6.85</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card" style="margin-bottom:16px">
+            <div class="card-title">Revenue over time</div>
+            <canvas class="earn-graph" id="graph-earn"></canvas>
+        </div>
+        <div class="card">
+            <div class="card-title">Revenue sources</div>
+            <div class="earn-sources" id="earn-sources"></div>
+        </div>
+        <div class="card" style="margin-top:16px">
+            <div class="card-title">Monetization features</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                    <span class="material-symbols-outlined" style="color:var(--yt-green);font-size:18px">check_circle</span>
+                    Ad revenue
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                    <span class="material-symbols-outlined" style="color:var(--yt-green);font-size:18px">check_circle</span>
+                    Channel memberships
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                    <span class="material-symbols-outlined" style="color:var(--yt-green);font-size:18px">check_circle</span>
+                    Super Chat &amp; Super Stickers
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                    <span class="material-symbols-outlined" style="color:var(--yt-green);font-size:18px">check_circle</span>
+                    Merchandise shelf
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                    <span class="material-symbols-outlined" style="color:var(--yt-green);font-size:18px">check_circle</span>
+                    YouTube Premium revenue
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                    <span class="material-symbols-outlined" style="color:var(--yt-green);font-size:18px">check_circle</span>
+                    Shopping
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ COMMENTS PAGE (placeholder) ============ -->
+    <div class="page" id="page-comments">
+        <div class="page-title">Comments</div>
+        <div class="card" style="text-align:center;padding:40px">
+            <span class="material-symbols-outlined" style="font-size:48px;color:var(--text-disabled);display:block;margin-bottom:12px">chat_bubble_outline</span>
+            <div style="color:var(--text-secondary)">No comments need your attention right now</div>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     HIDDEN EDITOR OVERLAY
+     Trigger: tap profile pic 5 times in 3 seconds, or Ctrl+Shift+E
+     ================================================================ -->
+<div class="editor-overlay" id="editor-overlay">
+    <div class="editor-panel">
+        <div class="editor-title">
+            Stats Editor
+            <button class="editor-close" id="editor-close">&times;</button>
+        </div>
+
+        <div class="editor-section">
+            <div class="editor-section-title">Channel</div>
+            <div class="editor-row">
+                <label class="editor-label">Channel name</label>
+                <input class="editor-input" id="e-channelName" type="text">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Subscribers</label>
+                <input class="editor-input" id="e-subscribers" type="number">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Total views</label>
+                <input class="editor-input" id="e-totalViews" type="number">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Total videos</label>
+                <input class="editor-input" id="e-totalVideos" type="number">
+            </div>
+        </div>
+
+        <div class="editor-section">
+            <div class="editor-section-title">Last 28 Days</div>
+            <div class="editor-row">
+                <label class="editor-label">Views</label>
+                <input class="editor-input" id="e-views28d" type="number">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Watch time (hours)</label>
+                <input class="editor-input" id="e-watchTime28d" type="number">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Subscribers gained</label>
+                <input class="editor-input" id="e-subs28d" type="number">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Estimated revenue ($)</label>
+                <input class="editor-input" id="e-revenue28d" type="number" step="0.01">
+            </div>
+        </div>
+
+        <div class="editor-section">
+            <div class="editor-section-title">Change Percentages</div>
+            <div class="editor-row">
+                <label class="editor-label">Views change %</label>
+                <input class="editor-input" id="e-viewsChange" type="number" step="0.1">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Watch time change %</label>
+                <input class="editor-input" id="e-wtChange" type="number" step="0.1">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Subscribers change %</label>
+                <input class="editor-input" id="e-subsChange" type="number" step="0.1">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Revenue change %</label>
+                <input class="editor-input" id="e-revChange" type="number" step="0.1">
+            </div>
+        </div>
+
+        <div class="editor-section">
+            <div class="editor-section-title">Realtime</div>
+            <div class="editor-row">
+                <label class="editor-label">Views last 48h</label>
+                <input class="editor-input" id="e-views48h" type="number">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Views last 60 min</label>
+                <input class="editor-input" id="e-views60m" type="number">
+            </div>
+        </div>
+
+        <div class="editor-section">
+            <div class="editor-section-title">Latest Video</div>
+            <div class="editor-row">
+                <label class="editor-label">Title</label>
+                <input class="editor-input" id="e-latestTitle" type="text">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Views</label>
+                <input class="editor-input" id="e-latestViews" type="number">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Likes</label>
+                <input class="editor-input" id="e-latestLikes" type="number">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Comments</label>
+                <input class="editor-input" id="e-latestComments" type="number">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Published (e.g. "3 days ago")</label>
+                <input class="editor-input" id="e-latestAge" type="text">
+            </div>
+        </div>
+
+        <div class="editor-section">
+            <div class="editor-section-title">Revenue Details</div>
+            <div class="editor-row">
+                <label class="editor-label">RPM ($)</label>
+                <input class="editor-input" id="e-rpm" type="number" step="0.01">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">CPM ($)</label>
+                <input class="editor-input" id="e-cpm" type="number" step="0.01">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Ad revenue %</label>
+                <input class="editor-input" id="e-adPct" type="number">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Memberships %</label>
+                <input class="editor-input" id="e-memPct" type="number">
+            </div>
+            <div class="editor-row">
+                <label class="editor-label">Super Chat %</label>
+                <input class="editor-input" id="e-scPct" type="number">
+            </div>
+        </div>
+
+        <div class="editor-section">
+            <div class="editor-section-title">Videos (title | views | age)</div>
+            <div id="editor-videos"></div>
+        </div>
+
+        <div class="editor-actions">
+            <button class="editor-btn editor-btn-save" id="editor-save">Save &amp; Update</button>
+            <button class="editor-btn editor-btn-secondary" id="editor-regen">Randomize Graphs</button>
+            <button class="editor-btn editor-btn-secondary" id="editor-reset">Reset Defaults</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ================================================================
+     JAVASCRIPT
+     ================================================================ -->
+<script>
+(function() {
+    'use strict';
+
+    // =================================================================
+    // STATE
+    // =================================================================
+    const STORAGE_KEY = 'ytstudio_fake_state';
+    const DEFAULT_STATE = {
+        channelName: 'Zinvolo',
+        subscribers: 847000,
+        totalViews: 45200000,
+        totalVideos: 156,
+        views28d: 2100000,
+        watchTime28d: 156700,
+        subs28d: 12400,
+        revenue28d: 8429.53,
+        viewsChange: 12.3,
+        wtChange: 8.1,
+        subsChange: 5.2,
+        revChange: 15.7,
+        views48h: 28400,
+        views60m: 47,
+        latestTitle: 'Building the ULTIMATE Gaming Setup for 2026',
+        latestViews: 342000,
+        latestLikes: 18900,
+        latestComments: 1247,
+        latestAge: '3 days ago',
+        rpm: 4.02,
+        cpm: 6.85,
+        adPct: 82,
+        memPct: 12,
+        scPct: 6,
+        videos: [
+            { title: 'Building the ULTIMATE Gaming Setup for 2026', views: 342000, age: 'Aug 13, 2026', likes: 18900, comments: 1247 },
+            { title: 'I Tried Living on $1 for 24 Hours...', views: 891000, age: 'Aug 9, 2026', likes: 42000, comments: 3891 },
+            { title: 'This Changes EVERYTHING', views: 1200000, age: 'Aug 2, 2026', likes: 67000, comments: 5420 },
+            { title: 'Reacting to Your Setups (Part 7)', views: 267000, age: 'Jul 26, 2026', likes: 15400, comments: 892 },
+            { title: 'The Truth About YouTube...', views: 524000, age: 'Jul 16, 2026', likes: 31000, comments: 2156 },
+            { title: 'I Built a $50,000 Home Theater', views: 1850000, age: 'Jul 7, 2026', likes: 89000, comments: 7231 },
+        ],
+        // Generated graph data
+        graphViews: null,
+        graphWatchTime: null,
+        graphSubs: null,
+        graphRevenue: null,
+        graphRealtime: null,
+        graphLatest: null,
+    };
+
+    let S = loadState();
+
+    function loadState() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                return { ...DEFAULT_STATE, ...parsed };
+            }
+        } catch(_) {}
+        return { ...DEFAULT_STATE, videos: DEFAULT_STATE.videos.map(v => ({...v})) };
+    }
+
+    function saveState() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch(_) {}
+    }
+
+    // =================================================================
+    // UTILITIES
+    // =================================================================
+    function fmt(n) {
+        if (n == null) return '0';
+        const abs = Math.abs(n);
+        if (abs >= 1e9) return (n/1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+        if (abs >= 1e6) return (n/1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+        if (abs >= 1e4) return (n/1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+        if (abs >= 1e3) return n.toLocaleString('en-US');
+        return String(n);
+    }
+
+    function fmtCurrency(n) {
+        return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function fmtPct(n) {
+        const arrow = n >= 0 ? '&#9650;' : '&#9660;';
+        const cls = n >= 0 ? 'up' : 'down';
+        return `<span class="${cls}">${arrow} ${Math.abs(n).toFixed(1)}%</span>`;
+    }
+
+    function generateGraphData(total, points = 28, seed = null) {
+        const rng = seededRandom(seed || (total * 7 + points * 13));
+        const base = total / points;
+        const data = [];
+        let trend = 0;
+        for (let i = 0; i < points; i++) {
+            trend += (rng() - 0.48) * base * 0.15;
+            const v = Math.max(0, base + trend + (rng() - 0.5) * base * 0.6);
+            data.push(Math.round(v));
+        }
+        // Scale to match total
+        const sum = data.reduce((a,b) => a+b, 0) || 1;
+        const scale = total / sum;
+        return data.map(v => Math.max(0, Math.round(v * scale)));
+    }
+
+    function seededRandom(seed) {
+        let s = Math.abs(Math.round(seed)) || 1;
+        return function() {
+            s = (s * 16807 + 11) % 2147483647;
+            return (s & 0x7fffffff) / 0x7fffffff;
+        };
+    }
+
+    function ensureGraphData(forceRegen = false) {
+        if (!S.graphViews || forceRegen) S.graphViews = generateGraphData(S.views28d, 28, forceRegen ? Math.random()*1e9 : null);
+        if (!S.graphWatchTime || forceRegen) S.graphWatchTime = generateGraphData(S.watchTime28d, 28, forceRegen ? Math.random()*1e9 : null);
+        if (!S.graphSubs || forceRegen) S.graphSubs = generateGraphData(S.subs28d, 28, forceRegen ? Math.random()*1e9 : null);
+        if (!S.graphRevenue || forceRegen) S.graphRevenue = generateGraphData(Math.round(S.revenue28d), 28, forceRegen ? Math.random()*1e9 : null);
+        if (!S.graphRealtime || forceRegen) S.graphRealtime = generateGraphData(S.views48h, 48, forceRegen ? Math.random()*1e9 : null);
+        if (!S.graphLatest || forceRegen) S.graphLatest = generateGraphData(S.latestViews, 12, forceRegen ? Math.random()*1e9 : null);
+        saveState();
+    }
+
+    // =================================================================
+    // GRAPH RENDERING
+    // =================================================================
+    function drawGraph(canvas, data, options = {}) {
+        if (!canvas || !data || data.length === 0) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        const w = rect.width;
+        const h = rect.height;
+
+        const color = options.color || '#3ea6ff';
+        const pad = options.padding || { top: 10, right: 10, bottom: 6, left: 10 };
+        const showGrid = options.showGrid || false;
+        const showLabels = options.showLabels || false;
+        const fill = options.fill !== false;
+
+        if (showLabels) {
+            pad.left = 55;
+            pad.bottom = 30;
+        }
+
+        const plotW = w - pad.left - pad.right;
+        const plotH = h - pad.top - pad.bottom;
+        const max = Math.max(...data) * 1.05;
+        const min = Math.min(0, Math.min(...data));
+        const range = max - min || 1;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Grid lines
+        if (showGrid) {
+            ctx.strokeStyle = '#2a2a2a';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= 4; i++) {
+                const y = pad.top + plotH * (i / 4);
+                ctx.beginPath();
+                ctx.moveTo(pad.left, y);
+                ctx.lineTo(w - pad.right, y);
+                ctx.stroke();
+                if (showLabels) {
+                    const val = max - (range * i / 4);
+                    ctx.fillStyle = '#717171';
+                    ctx.font = '11px Roboto';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(fmt(Math.round(val)), pad.left - 8, y + 4);
+                }
+            }
+        }
+
+        // Compute points
+        const points = data.map((v, i) => ({
+            x: pad.left + (i / Math.max(1, data.length - 1)) * plotW,
+            y: pad.top + (1 - (v - min) / range) * plotH
+        }));
+
+        // Draw smooth line
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = options.lineWidth || 2;
+        ctx.lineJoin = 'round';
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            const prev = points[i-1];
+            const curr = points[i];
+            const cpx = (prev.x + curr.x) / 2;
+            ctx.bezierCurveTo(cpx, prev.y, cpx, curr.y, curr.x, curr.y);
+        }
+        ctx.stroke();
+
+        // Gradient fill
+        if (fill) {
+            ctx.lineTo(points[points.length-1].x, pad.top + plotH);
+            ctx.lineTo(points[0].x, pad.top + plotH);
+            ctx.closePath();
+            const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + plotH);
+            grad.addColorStop(0, color + '30');
+            grad.addColorStop(1, color + '00');
+            ctx.fillStyle = grad;
+            ctx.fill();
+        }
+
+        // X labels (dates)
+        if (showLabels && data.length > 1) {
+            ctx.fillStyle = '#717171';
+            ctx.font = '10px Roboto';
+            ctx.textAlign = 'center';
+            const labels = data.length;
+            const step = Math.max(1, Math.floor(labels / 6));
+            const now = new Date();
+            for (let i = 0; i < labels; i += step) {
+                const d = new Date(now - (labels - 1 - i) * 86400000);
+                const label = (d.getMonth()+1) + '/' + d.getDate();
+                const x = pad.left + (i / (labels - 1)) * plotW;
+                ctx.fillText(label, x, h - 6);
+            }
+        }
+    }
+
+    function drawSparkline(canvas, data, color = '#3ea6ff') {
+        drawGraph(canvas, data, {
+            color, fill: true,
+            padding: { top: 4, right: 2, bottom: 4, left: 2 },
+            lineWidth: 1.5, showGrid: false, showLabels: false
+        });
+    }
+
+    // =================================================================
+    // RENDER ALL DATA
+    // =================================================================
+    function renderAll() {
+        ensureGraphData();
+
+        // Dashboard
+        document.getElementById('sidebar-channel-name').textContent = S.channelName;
+        document.getElementById('dash-subs').textContent = fmt(S.subscribers);
+        document.getElementById('dash-views28').textContent = fmt(S.views28d);
+        document.getElementById('dash-watchtime28').textContent = fmt(S.watchTime28d);
+        document.getElementById('dash-subs28').textContent = '+' + fmt(S.subs28d);
+        document.getElementById('dash-revenue28').textContent = fmtCurrency(S.revenue28d).split('.')[0];
+
+        document.getElementById('dash-views-change').innerHTML = fmtPct(S.viewsChange);
+        document.getElementById('dash-wt-change').innerHTML = fmtPct(S.wtChange);
+        document.getElementById('dash-subs-change').innerHTML = fmtPct(S.subsChange);
+        document.getElementById('dash-rev-change').innerHTML = fmtPct(S.revChange);
+
+        // Sparklines
+        drawSparkline(document.getElementById('spark-views'), S.graphViews, '#3ea6ff');
+        drawSparkline(document.getElementById('spark-watchtime'), S.graphWatchTime, '#3ea6ff');
+        drawSparkline(document.getElementById('spark-subs'), S.graphSubs, S.subsChange >= 0 ? '#2ba640' : '#ff0000');
+        drawSparkline(document.getElementById('spark-revenue'), S.graphRevenue, '#2ba640');
+
+        // Latest video
+        document.getElementById('latest-title').textContent = S.latestTitle;
+        document.getElementById('latest-meta').textContent = 'Published ' + S.latestAge;
+        document.getElementById('latest-views').textContent = fmt(S.latestViews);
+        document.getElementById('latest-likes').textContent = fmt(S.latestLikes);
+        document.getElementById('latest-comments').textContent = S.latestComments.toLocaleString();
+        drawGraph(document.getElementById('graph-latest'), S.graphLatest, {
+            color: '#3ea6ff', showGrid: true, lineWidth: 2,
+            padding: { top: 10, right: 10, bottom: 6, left: 40 }
+        });
+
+        // Realtime
+        document.getElementById('rt-views48').textContent = S.views48h.toLocaleString();
+        document.getElementById('rt-views60').textContent = S.views60m.toLocaleString();
+        drawGraph(document.getElementById('graph-realtime'), S.graphRealtime, {
+            color: '#3ea6ff', showGrid: false, lineWidth: 1.5
+        });
+
+        // Milestone
+        const milestones = [100, 1000, 10000, 100000, 500000, 1000000, 5000000, 10000000, 50000000, 100000000];
+        let goal = milestones.find(m => m > S.subscribers) || S.subscribers * 2;
+        document.getElementById('milestone-goal').textContent = fmt(goal) + ' subscribers';
+        const pct = Math.min(100, (S.subscribers / goal) * 100);
+        document.getElementById('milestone-bar').style.width = pct + '%';
+        document.getElementById('milestone-text').textContent = fmt(S.subscribers) + ' / ' + fmt(goal);
+
+        // Analytics page
+        document.getElementById('am-views').textContent = fmt(S.views28d);
+        document.getElementById('am-watchtime').textContent = fmt(S.watchTime28d);
+        document.getElementById('am-subs').textContent = '+' + fmt(S.subs28d);
+        document.getElementById('am-revenue').textContent = fmtCurrency(S.revenue28d).split('.')[0];
+        document.getElementById('am-views-change').innerHTML = fmtPct(S.viewsChange);
+        document.getElementById('am-wt-change').innerHTML = fmtPct(S.wtChange);
+        document.getElementById('am-subs-change').innerHTML = fmtPct(S.subsChange);
+        document.getElementById('am-rev-change').innerHTML = fmtPct(S.revChange);
+        drawGraph(document.getElementById('graph-analytics-main'), S.graphViews, {
+            color: '#3ea6ff', showGrid: true, showLabels: true, lineWidth: 2,
+            padding: { top: 20, right: 20, bottom: 35, left: 60 }
+        });
+
+        // Content page
+        renderContentTable();
+
+        // Earn page
+        document.getElementById('earn-revenue').textContent = fmtCurrency(S.revenue28d);
+        document.getElementById('earn-rev-change').innerHTML = fmtPct(S.revChange) + ' vs previous 28 days';
+        document.getElementById('earn-rpm').textContent = '$' + S.rpm.toFixed(2);
+        document.getElementById('earn-cpm').textContent = '$' + S.cpm.toFixed(2);
+        drawGraph(document.getElementById('graph-earn'), S.graphRevenue, {
+            color: '#2ba640', showGrid: true, showLabels: true, lineWidth: 2,
+            padding: { top: 20, right: 20, bottom: 35, left: 60 }
+        });
+        renderEarnSources();
+    }
+
+    function renderContentTable() {
+        const tbody = document.getElementById('content-tbody');
+        tbody.innerHTML = '';
+        const gradients = [
+            'linear-gradient(135deg, #667eea, #764ba2)',
+            'linear-gradient(135deg, #f093fb, #f5576c)',
+            'linear-gradient(135deg, #4facfe, #00f2fe)',
+            'linear-gradient(135deg, #43e97b, #38f9d7)',
+            'linear-gradient(135deg, #fa709a, #fee140)',
+            'linear-gradient(135deg, #a18cd1, #fbc2eb)',
+        ];
+        S.videos.forEach((v, i) => {
+            const likePct = v.views > 0 ? Math.round((v.likes / v.views) * 100) : 0;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <div class="content-video-cell">
+                        <div class="content-thumb" style="background:${gradients[i % gradients.length]}"></div>
+                        <div>
+                            <div class="content-video-title">${escHtml(v.title)}</div>
+                            <div class="content-video-desc">${escHtml(S.channelName)} &middot; ${fmt(v.views)} views</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="content-visibility">
+                        <span class="material-symbols-outlined">public</span> Public
+                    </div>
+                </td>
+                <td style="color:var(--text-secondary)">${escHtml(v.age)}</td>
+                <td>${fmt(v.views)}</td>
+                <td>${fmt(v.comments)}</td>
+                <td>${likePct}%</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderEarnSources() {
+        const container = document.getElementById('earn-sources');
+        container.innerHTML = '';
+        const sources = [
+            { name: 'Ads', pct: S.adPct, color: '#3ea6ff' },
+            { name: 'Channel memberships', pct: S.memPct, color: '#2ba640' },
+            { name: 'Super Chat & Super Stickers', pct: S.scPct, color: '#f5c518' },
+        ];
+        // Remaining goes to "YouTube Premium"
+        const remaining = Math.max(0, 100 - S.adPct - S.memPct - S.scPct);
+        if (remaining > 0) {
+            sources.push({ name: 'YouTube Premium', pct: remaining, color: '#ff0000' });
+        }
+        for (const s of sources) {
+            const val = (S.revenue28d * s.pct / 100).toFixed(2);
+            const row = document.createElement('div');
+            row.className = 'earn-source-row';
+            row.innerHTML = `
+                <div class="earn-source-name">${s.name}</div>
+                <div class="earn-source-bar-wrap">
+                    <div class="earn-source-bar" style="width:${s.pct}%;background:${s.color}"></div>
+                </div>
+                <div class="earn-source-pct">${s.pct}%</div>
+                <div class="earn-source-val">$${Number(val).toLocaleString('en-US', {minimumFractionDigits:2})}</div>
+            `;
+            container.appendChild(row);
+        }
+    }
+
+    function escHtml(str) {
+        const d = document.createElement('div');
+        d.textContent = str || '';
+        return d.innerHTML;
+    }
+
+    // =================================================================
+    // NAVIGATION
+    // =================================================================
+    const pages = ['dashboard', 'analytics', 'content', 'earn', 'comments'];
+
+    window.navigate = function(page) {
+        if (!pages.includes(page)) return;
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + page).classList.add('active');
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.page === page);
+        });
+        // Redraw graphs on the newly visible page (canvas needs to be visible to measure)
+        requestAnimationFrame(() => renderAll());
+    };
+
+    document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
+        item.addEventListener('click', () => {
+            navigate(item.dataset.page);
+            // Close sidebar on mobile
+            if (window.innerWidth <= 900) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        });
+    });
+
+    // Hamburger toggle (mobile)
+    document.getElementById('hamburger').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+    });
+
+    // Analytics tab switching
+    document.querySelectorAll('.analytics-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.analytics-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            // Switch graph data based on tab
+            const metric = tab.dataset.tab;
+            const graphData = {
+                overview: S.graphViews,
+                content: S.graphWatchTime,
+                audience: S.graphSubs,
+                revenue: S.graphRevenue,
+            };
+            const colors = {
+                overview: '#3ea6ff',
+                content: '#3ea6ff',
+                audience: '#2ba640',
+                revenue: '#2ba640',
+            };
+            drawGraph(document.getElementById('graph-analytics-main'), graphData[metric] || S.graphViews, {
+                color: colors[metric] || '#3ea6ff',
+                showGrid: true, showLabels: true, lineWidth: 2,
+                padding: { top: 20, right: 20, bottom: 35, left: 60 }
+            });
+        });
+    });
+
+    // Analytics metric card click
+    document.querySelectorAll('.analytics-metric-card').forEach(card => {
+        card.addEventListener('click', () => {
+            document.querySelectorAll('.analytics-metric-card').forEach(c => c.classList.remove('active-metric'));
+            card.classList.add('active-metric');
+            const metric = card.dataset.metric;
+            const graphData = {
+                views: S.graphViews,
+                watchtime: S.graphWatchTime,
+                subs: S.graphSubs,
+                revenue: S.graphRevenue,
+            };
+            const colors = { views: '#3ea6ff', watchtime: '#3ea6ff', subs: '#2ba640', revenue: '#2ba640' };
+            drawGraph(document.getElementById('graph-analytics-main'), graphData[metric], {
+                color: colors[metric], showGrid: true, showLabels: true, lineWidth: 2,
+                padding: { top: 20, right: 20, bottom: 35, left: 60 }
+            });
+        });
+    });
+
+    // Content filter tabs (visual only)
+    document.querySelectorAll('.content-filter').forEach(f => {
+        f.addEventListener('click', () => {
+            document.querySelectorAll('.content-filter').forEach(x => x.classList.remove('active'));
+            f.classList.add('active');
+        });
+    });
+
+    // =================================================================
+    // SECRET EDITOR
+    // =================================================================
+    let pfpClicks = 0;
+    let pfpClickTimer = null;
+
+    document.getElementById('pfp-trigger').addEventListener('click', () => {
+        pfpClicks++;
+        if (pfpClicks === 1) {
+            pfpClickTimer = setTimeout(() => { pfpClicks = 0; }, 3000);
+        }
+        if (pfpClicks >= 5) {
+            pfpClicks = 0;
+            clearTimeout(pfpClickTimer);
+            openEditor();
+        }
+    });
+
+    // Keyboard shortcut: Ctrl+Shift+E
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.shiftKey && e.key === 'E') {
+            e.preventDefault();
+            openEditor();
+        }
+    });
+
+    function openEditor() {
+        const overlay = document.getElementById('editor-overlay');
+        overlay.classList.add('open');
+
+        // Populate fields
+        document.getElementById('e-channelName').value = S.channelName;
+        document.getElementById('e-subscribers').value = S.subscribers;
+        document.getElementById('e-totalViews').value = S.totalViews;
+        document.getElementById('e-totalVideos').value = S.totalVideos;
+        document.getElementById('e-views28d').value = S.views28d;
+        document.getElementById('e-watchTime28d').value = S.watchTime28d;
+        document.getElementById('e-subs28d').value = S.subs28d;
+        document.getElementById('e-revenue28d').value = S.revenue28d;
+        document.getElementById('e-viewsChange').value = S.viewsChange;
+        document.getElementById('e-wtChange').value = S.wtChange;
+        document.getElementById('e-subsChange').value = S.subsChange;
+        document.getElementById('e-revChange').value = S.revChange;
+        document.getElementById('e-views48h').value = S.views48h;
+        document.getElementById('e-views60m').value = S.views60m;
+        document.getElementById('e-latestTitle').value = S.latestTitle;
+        document.getElementById('e-latestViews').value = S.latestViews;
+        document.getElementById('e-latestLikes').value = S.latestLikes;
+        document.getElementById('e-latestComments').value = S.latestComments;
+        document.getElementById('e-latestAge').value = S.latestAge;
+        document.getElementById('e-rpm').value = S.rpm;
+        document.getElementById('e-cpm').value = S.cpm;
+        document.getElementById('e-adPct').value = S.adPct;
+        document.getElementById('e-memPct').value = S.memPct;
+        document.getElementById('e-scPct').value = S.scPct;
+
+        // Video editors
+        const vContainer = document.getElementById('editor-videos');
+        vContainer.innerHTML = '';
+        S.videos.forEach((v, i) => {
+            vContainer.innerHTML += `
+                <div style="display:flex;gap:8px;margin-bottom:6px;align-items:center">
+                    <input class="editor-input e-vid-title" data-i="${i}" type="text" value="${escHtml(v.title)}" style="flex:2" placeholder="Title">
+                    <input class="editor-input e-vid-views" data-i="${i}" type="number" value="${v.views}" style="flex:1" placeholder="Views">
+                    <input class="editor-input e-vid-age" data-i="${i}" type="text" value="${escHtml(v.age)}" style="flex:1" placeholder="Date">
+                </div>
+            `;
+        });
+    }
+
+    function closeEditor() {
+        document.getElementById('editor-overlay').classList.remove('open');
+    }
+
+    document.getElementById('editor-close').addEventListener('click', closeEditor);
+    document.getElementById('editor-overlay').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('editor-overlay')) closeEditor();
+    });
+
+    document.getElementById('editor-save').addEventListener('click', () => {
+        S.channelName = document.getElementById('e-channelName').value || 'Zinvolo';
+        S.subscribers = Number(document.getElementById('e-subscribers').value) || 0;
+        S.totalViews = Number(document.getElementById('e-totalViews').value) || 0;
+        S.totalVideos = Number(document.getElementById('e-totalVideos').value) || 0;
+        S.views28d = Number(document.getElementById('e-views28d').value) || 0;
+        S.watchTime28d = Number(document.getElementById('e-watchTime28d').value) || 0;
+        S.subs28d = Number(document.getElementById('e-subs28d').value) || 0;
+        S.revenue28d = Number(document.getElementById('e-revenue28d').value) || 0;
+        S.viewsChange = Number(document.getElementById('e-viewsChange').value) || 0;
+        S.wtChange = Number(document.getElementById('e-wtChange').value) || 0;
+        S.subsChange = Number(document.getElementById('e-subsChange').value) || 0;
+        S.revChange = Number(document.getElementById('e-revChange').value) || 0;
+        S.views48h = Number(document.getElementById('e-views48h').value) || 0;
+        S.views60m = Number(document.getElementById('e-views60m').value) || 0;
+        S.latestTitle = document.getElementById('e-latestTitle').value;
+        S.latestViews = Number(document.getElementById('e-latestViews').value) || 0;
+        S.latestLikes = Number(document.getElementById('e-latestLikes').value) || 0;
+        S.latestComments = Number(document.getElementById('e-latestComments').value) || 0;
+        S.latestAge = document.getElementById('e-latestAge').value;
+        S.rpm = Number(document.getElementById('e-rpm').value) || 0;
+        S.cpm = Number(document.getElementById('e-cpm').value) || 0;
+        S.adPct = Number(document.getElementById('e-adPct').value) || 0;
+        S.memPct = Number(document.getElementById('e-memPct').value) || 0;
+        S.scPct = Number(document.getElementById('e-scPct').value) || 0;
+
+        // Videos
+        document.querySelectorAll('.e-vid-title').forEach(inp => {
+            const i = Number(inp.dataset.i);
+            if (S.videos[i]) S.videos[i].title = inp.value;
+        });
+        document.querySelectorAll('.e-vid-views').forEach(inp => {
+            const i = Number(inp.dataset.i);
+            if (S.videos[i]) S.videos[i].views = Number(inp.value) || 0;
+        });
+        document.querySelectorAll('.e-vid-age').forEach(inp => {
+            const i = Number(inp.dataset.i);
+            if (S.videos[i]) S.videos[i].age = inp.value;
+        });
+
+        // Regenerate graphs to match new totals
+        ensureGraphData(true);
+        saveState();
+        renderAll();
+        closeEditor();
+        showToast('Stats updated');
+    });
+
+    document.getElementById('editor-regen').addEventListener('click', () => {
+        ensureGraphData(true);
+        saveState();
+        renderAll();
+        showToast('Graphs randomized');
+    });
+
+    document.getElementById('editor-reset').addEventListener('click', () => {
+        if (!confirm('Reset all stats to defaults?')) return;
+        Object.assign(S, JSON.parse(JSON.stringify(DEFAULT_STATE)));
+        ensureGraphData(true);
+        saveState();
+        renderAll();
+        openEditor(); // Re-populate fields
+        showToast('Reset to defaults');
+    });
+
+    // =================================================================
+    // TOAST
+    // =================================================================
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('visible');
+        setTimeout(() => toast.classList.remove('visible'), 2500);
+    }
+
+    // =================================================================
+    // WINDOW RESIZE — redraw graphs
+    // =================================================================
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => renderAll(), 150);
+    });
+
+    // =================================================================
+    // SERVICE WORKER REGISTRATION
+    // =================================================================
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+
+    // =================================================================
+    // INIT
+    // =================================================================
+    ensureGraphData();
+    renderAll();
+
+})();
+</script>
+
+</body>
+</html>
